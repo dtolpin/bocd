@@ -6,7 +6,7 @@ import numpy
 import numpy.random
 import numpy.linalg
 from functools import partial
-from clew.changepoint.bocd import * 
+from bocd import * 
 
 LAMBDA = 100
 ALPHA = 0.1

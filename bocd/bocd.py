@@ -1,9 +1,10 @@
-from __future__ import division
 import numpy
 import scipy.stats
 
 # Copyright (c) 2014 Johannes Kulick
-# Code borrowed from:
+# Copyright (c) 2017-2018 David Tolpin
+#
+# Code initally borrowed from:
 #    https://github.com/hildensia/bayesian_changepoint_detection
 # under the MIT license.
 
@@ -106,42 +107,9 @@ class StudentT:
         self.beta = betaT0
 
     def prune(self, t):
+        """Prunes memory before t.
+        """
         self.mu = self.mu[:t + 1]
         self.kappa = self.kappa[:t + 1]
         self.alpha = self.alpha[:t + 1]
         self.beta = self.beta[:t + 1]
-
-# Original single-shot code
-
-def online_changepoint_detection(data, hazard_func, observation_likelihood):
-    """Computes changepoint probabilities in the data.
-    Returns the matrix of probabilities of all sequence lengths at each point.
-    """
-    R = numpy.zeros((len(data) + 1, len(data) + 1))
-    R[0, 0] = 1
-
-    for t, x in enumerate(data):
-        # Evaluate the predictive distribution for the new datum under each of
-        # the parameters.  This is the standard thing from Bayesian inference.
-        predprobs = self.observation_likelihood.pdf(x)
-
-        # Evaluate the hazard function for this interval
-        H = hazard_func(numpy.array(range(t+1)))
-
-        # Evaluate the growth probabilities - shift the probabilities down and to
-        # the right, scaled by the hazard function and the predictive
-        # probabilities.
-        R[1:t+2, t+1] = R[0:t+1, t] * predprobs * (1-H)
-
-        # Evaluate the probability that there *was* a changepoint and we're
-        # accumulating the mass back down at r = 0.
-        R[0, t+1] = numpy.sum( R[0:t+1, t] * predprobs * H)
-
-        # Renormalize the run length probabilities for improved numerical
-        # stability.
-        R[:, t+1] = R[:, t+1] / numpy.sum(R[:, t+1])
-
-        # Update the parameter sets for each possible run length.
-        self.observation_likelihood.update_theta(x)
-
-    return R
